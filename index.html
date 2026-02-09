@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <html>
 <head>
   <title>Starfall Compendium</title>
@@ -40,27 +41,43 @@ dropdown.addEventListener("change", loadSheet);
 
 function loadSheet() {
   const url = sheets[dropdown.value];
-  fetch(url)
-    .then(r => r.text())
-    .then(csv => renderTable(csv));
+
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      renderTable(results.data);
+    }
+  });
 }
 
-function renderTable(csv) {
-  const rows = csv.split("\n").map(r => r.split(","));
+function renderTable(data) {
+  if (!data.length) return;
+
   let html = "<table>";
-  rows.forEach((row, i) => {
+
+  // headers
+  html += "<tr>";
+  Object.keys(data[0]).forEach(key => {
+    html += `<th>${key}</th>`;
+  });
+  html += "</tr>";
+
+  // rows
+  data.forEach(row => {
     html += "<tr>";
-    row.forEach(cell => {
-      html += i === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`;
+    Object.values(row).forEach(cell => {
+      html += `<td>${cell || ""}</td>`;
     });
     html += "</tr>";
   });
+
   html += "</table>";
+
   document.getElementById("table").innerHTML = html;
 }
 
 loadSheet();
 </script>
-
 </body>
 </html>
