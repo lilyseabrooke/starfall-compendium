@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Starfall Compendium</title>
+</head>
+<body>
+  <h1>Starfall Compendium</h1>
+
+  <div id="data"></div>
+
+  <script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=0&single=true&output=csv";
+
+    fetch(sheetURL)
+      .then(response => response.text())
+      .then(csv => {
+        document.getElementById("data").innerText = csv;
+      });
+  </script>
+</body>
+</html>
