@@ -69,10 +69,6 @@
 <body>
 
 <h1>Starfall Compendium</h1>
-
-<button onclick="console.log(sheets)">
-  See sheet info
-</button>
   
 <select id="category"></select>
 
@@ -113,7 +109,7 @@ function loadSheet() {
 
 function renderEntries(data) {
   list.innerHTML = "";
-
+  console.log(data[0]);
   data.forEach(entry => {
     const card = document.createElement("div");
     card.className = "entry";
