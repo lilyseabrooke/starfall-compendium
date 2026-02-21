@@ -1,21 +1,78 @@
 <!DOCTYPE html>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <html>
 <head>
   <title>Starfall Compendium</title>
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
-    body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background: #eee; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f7f7f7;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    select {
+      padding: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .entry {
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .entry-header {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      background: #ffffff;
+    }
+
+    .entry-meta {
+      font-weight: normal;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .entry-content {
+      padding: 16px;
+      border-top: 1px solid #eee;
+      display: none;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .entry.open .entry-content {
+      display: block;
+    }
+
+    .label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Starfall Compendium</h1>
 
-  <select id="category"></select>
+<h1>Starfall Compendium</h1>
 
-  <div id="table"></div>
+<select id="category"></select>
+
+<div id="list"></div>
 
 <script>
 const sheets = {
@@ -29,9 +86,10 @@ const sheets = {
 };
 
 const dropdown = document.getElementById("category");
+const list = document.getElementById("list");
 
 for (let name in sheets) {
-  let option = document.createElement("option");
+  const option = document.createElement("option");
   option.value = name;
   option.textContent = name;
   dropdown.appendChild(option);
@@ -40,44 +98,63 @@ for (let name in sheets) {
 dropdown.addEventListener("change", loadSheet);
 
 function loadSheet() {
-  const url = sheets[dropdown.value];
-
-  Papa.parse(url, {
+  Papa.parse(sheets[dropdown.value], {
     download: true,
     header: true,
     complete: function(results) {
-      renderTable(results.data);
+      renderEntries(results.data);
     }
   });
 }
 
-function renderTable(data) {
-  if (!data.length) return;
+function renderEntries(data) {
+  list.innerHTML = "";
 
-  let html = "<table>";
+  data.forEach(entry => {
+    const card = document.createElement("div");
+    card.className = "entry";
 
-  // headers
-  html += "<tr>";
-  Object.keys(data[0]).forEach(key => {
-    html += `<th>${key}</th>`;
-  });
-  html += "</tr>";
+    card.innerHTML = `
+      <div class="entry-header">
+        <div>
+          ${entry.Name || "Unnamed"}
+          <div class="entry-meta">
+            Rank: ${entry.Rank || "-"} • Cost: ${entry.Cost || "-"}
+          </div>
+        </div>
+        <div>▼</div>
+      </div>
 
-  // rows
-  data.forEach(row => {
-    html += "<tr>";
-    Object.values(row).forEach(cell => {
-      html += `<td>${cell || ""}</td>`;
+      <div class="entry-content">
+        ${renderDetails(entry)}
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      card.classList.toggle("open");
     });
-    html += "</tr>";
+
+    list.appendChild(card);
   });
+}
 
-  html += "</table>";
+function renderDetails(entry) {
+  let html = "";
 
-  document.getElementById("table").innerHTML = html;
+  for (let key in entry) {
+    if (!entry[key] || key === "Name" || key === "Rank" || key === "Cost") continue;
+
+    html += `
+      <div class="label">${key}</div>
+      <div>${entry[key]}</div>
+    `;
+  }
+
+  return html;
 }
 
 loadSheet();
 </script>
+
 </body>
 </html>
