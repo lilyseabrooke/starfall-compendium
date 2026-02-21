@@ -7,21 +7,57 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
+	@import url('https://fonts.googleapis.com/css?family=Uncial+Antiqua&display=swap');
+	@import url('https://fonts.googleapis.com/css?family=Metamorphous&display=swap');
+	@import url('https://fonts.googleapis.com/css?family=Yatra+One&display=swap');
+	@import url('https://fonts.googleapis.com/css?family=Spectral&display=swap');
+	@import url('https://fonts.googleapis.com/css?family=Material+Icons&display=swap');
+  
     body {
-      font-family: Arial, sans-serif;
+      font-family: Spectral;
       margin: 40px;
       background: #f7f7f7;
+	  
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
     }
 
     h1 {
-      margin-bottom: 20px;
+		font-family: Uncial Antiqua;
+		margin-top: 20px;
+		margin-bottom: 10px;
+		color: #333333;
+		letter-spacing: 2px;
+		font-size: 3em;
     }
+	
+	h2 {
+		color: #333333;
+		letter-spacing: 5px;
+		font-size: 1.8em;
+	}
 
     select {
       padding: 8px;
       font-size: 16px;
       margin-bottom: 20px;
     }
+	
+	#header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		background-color: rgb(169 138 95);
+		border-radius: 10px;
+		width: 75%;
+		padding-top: 20px;
+		padding-bottom: 20px;
+	}
+	
+	#list {
+		width: 75%;
+	}
 
     .entry {
       background: white;
@@ -68,8 +104,11 @@
 
 <body>
 
-<h1>Starfall Compendium</h1>
-  
+<div id="header">
+<img src="https://raw.githubusercontent.com/lilyseabrooke/Starfall-sheet/refs/heads/main/New%20Crest%202.png"></img>
+<h1>STARFALL ACADEMY</h1>
+<h2>REFERENCE COMPENDIUM</h2>
+</div>
 <select id="category"></select>
 
 <div id="list"></div>
@@ -86,13 +125,13 @@ const sheets = {
 };
 
 const headerFields = {
-  'Spells': '${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}""',
-  'Potions': 'COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
-  'Glyphs': 'COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
-  'Wands': 'COST: ${entry.COST || "N/A"}""',
-  'Artifacts': '${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}""',
-  'Plants': 'VALUE: ${entry.VALUE || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
-  'Classes': ''
+  spell: entry => `${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}`,
+  potion: entry => `COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}`,
+  glyph: entry => `COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}`,
+  wand: entry => `COST: ${entry.COST || "N/A"}`,
+  artifact: entry => `${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}`,
+  plant: entry => `VALUE: ${entry.VALUE || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}`,
+  class: entry => ""
 };
 
 const dropdown = document.getElementById("category");
@@ -119,20 +158,18 @@ function loadSheet() {
 
 function renderEntries(data) {
   list.innerHTML = "";
-  console.log(data[0]);
   data.forEach(entry => {
     const card = document.createElement("div");
     card.className = "entry";
-    const category = entry.ID.split('_')[0];
-    const headerFormat = headerFields[category];
-    console.log(headerFormat);
+    const category = entry.ID.split('_')[0].toLowerCase();
+    const headerFormat = headerFields[category] || (() => "");
 
     card.innerHTML = `
       <div class="entry-header">
         <div>
           ${entry.NAME || "Unnamed"}
           <div class="entry-meta">
-            ${headerFormat}
+            ${headerFormat(entry)}
           </div>
         </div>
         <div>▼</div>
