@@ -85,6 +85,16 @@ const sheets = {
   "Classes": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=1631797228&single=true&output=csv"
 };
 
+const headerFields = {
+  'Spells': '${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}""',
+  'Potions': 'COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
+  'Glyphs': 'COST: ${entry.COST || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
+  'Wands': 'COST: ${entry.COST || "N/A"}""',
+  'Artifacts': '${entry.LEVEL || "UNKNOWN LEVEL"} • ${entry.SUBJECT || "UNKNOWN FIELD"}""',
+  'Plants': 'VALUE: ${entry.VALUE || "N/A"} • INTENSITY: ${entry.INTENSITY || "N/A"}""',
+  'Classes': ''
+};
+
 const dropdown = document.getElementById("category");
 const list = document.getElementById("list");
 
@@ -113,13 +123,16 @@ function renderEntries(data) {
   data.forEach(entry => {
     const card = document.createElement("div");
     card.className = "entry";
+    const category = entry.ID.split('_')[0];
+    const headerFormat = headerFields[category];
+    console.log(headerFormat);
 
     card.innerHTML = `
       <div class="entry-header">
         <div>
           ${entry.NAME || "Unnamed"}
           <div class="entry-meta">
-            ${entry.LEVEL || "UNKNOWN"} ${entry.SUBJECT || ""} SPELL
+            ${headerFormat}
           </div>
         </div>
         <div>▼</div>
