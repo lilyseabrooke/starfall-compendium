@@ -15,6 +15,10 @@
 	@import url('https://fonts.googleapis.com/css?family=Yatra+One&display=swap');
 	@import url('https://fonts.googleapis.com/css?family=Spectral&display=swap');
 	@import url('https://fonts.googleapis.com/css?family=Material+Icons&display=swap');
+	
+	:root {
+		--card-color: rgb(169 138 95);
+	}
   
     body {
       font-family: Spectral;
@@ -65,11 +69,22 @@
 		font-family: Spectral;
     }
 	
+	#filter-bar input[type="text"] {
+		margin-left: 10px;
+		padding: 7px;
+		border: 2px
+		solid #9f9f9f;
+		border-radius: 7px;
+		font-family: Spectral;
+		text-transform: uppercase;
+	}
+
+	
 	#header {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		background-color: rgb(169 138 95);
+		background-color: var(--card-color);
 		border-radius: 10px;
 		width: 75%;
 		padding-top: 20px;
@@ -89,6 +104,7 @@
 		gap: 5px;
 	}
 
+
 	#filter-menu {
 		position: absolute;
 		background: #fff;
@@ -99,15 +115,22 @@
 		display: none;
 		z-index: 1001;
 		width: 300px;
+		
+		
+		opacity: 0;
+		transform: translateY(-10px);
+		pointer-events: none;
+		transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
 	}
 
+	#filter-menu.show {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
 	#filter-menu {
 		display: flex;
 		flex-direction: column;
-	}
-
-	#filter-menu.hidden {
-		display: none;
 	}
 
 	#filter-menu .filter-group {
@@ -124,11 +147,11 @@
       margin-bottom: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
       overflow: hidden;
-      cursor: pointer;
     }
 
     .entry-header {
       padding: 14px 16px;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -188,6 +211,44 @@
 	.material-icons {
 		font-size: 19px;
 	}
+	
+	.arrow {
+	  display: inline-block;
+	  transition: transform 0.1s ease;
+	}
+
+	.entry.open .arrow {
+	  transform: scale(-1);
+	}
+	
+	.copy-button {
+	  margin-top: 10px;
+	  padding: 6px 12px;
+	  border: 1px solid #9f9f9f;
+	  border-radius: 5px;
+	  background-color: #fff;
+	  cursor: pointer;
+	  font-family: Spectral;
+	  align-self: flex-start;
+	  text-transform: uppercase;
+	}
+	.copy-button:hover {
+	  background-color: #f0f0f0;
+	}
+	
+	.header-copy-button {
+	  border: none;
+	  background: transparent;
+	  cursor: pointer;
+	  padding: 2px;
+	  font-size: 18px;
+	  color: #555;
+	}
+
+	.header-copy-button:hover {
+	  color: #000;
+	}
+	
   </style>
 </head>
 
@@ -200,13 +261,19 @@
 </div>
 <div id="filter-bar">
 <select id="category"></select>
+	<input 
+		type="text" 
+		id="search-bar" 
+		placeholder=SEARCH
+	>
 	<button id="filter-button">
 		<span class="material-icons">filter_list</span>
 	</button>
 
-	<div id="filter-menu" class="hidden">
+	<div id="filter-menu">
 		<!-- Filter options will be dynamically inserted here -->
 	</div>
+	
 </div>
 
 <div id="list"></div>
@@ -242,7 +309,8 @@ for (let name in sheets) {
   dropdown.appendChild(option);
 }
 
-new TomSelect("#category", {
+// ✅ store the instance
+const categorySelect = new TomSelect("#category", {
   create: false,
   sortField: { field: "text", direction: "asc" },
   searchField: [],
@@ -250,11 +318,19 @@ new TomSelect("#category", {
 
   onItemAdd() {
     this.close();
-	this.blur();
+    this.blur();
   }
 });
 
-dropdown.addEventListener("change", loadSheet);
+// ✅ collapse filter menu when user opens the category picker
+categorySelect.on("dropdown_open", () => {
+  filterMenu.classList.remove("show");
+});
+
+// ✅ run your existing sheet loading logic via TomSelect change event
+categorySelect.on("change", (value) => {
+  loadSheet(value);
+});
 
 
 let currentData = []; // global variable to store current sheet data
@@ -266,6 +342,7 @@ function loadSheet() {
     complete: function(results) {
       currentData = results.data; // store globally
       renderEntries(currentData); // initially render all
+	  renderFilters(dropdown.value);
 	  setupFilterListeners();
     }
   });
@@ -287,17 +364,34 @@ function renderEntries(data) {
             ${headerFormat(entry)}
           </div>
         </div>
-        <div>▼</div>
+        <div style="display:flex; align-items:center; gap:5px;">
+		  <button class="header-copy-button" title="Copy"><span class="material-icons">content_copy</span></button>
+		  <div class="arrow">▼</div>
+		</div>
       </div>
 
       <div class="entry-content">
         ${renderDetails(entry)}
+		<button class="copy-button">Copy</button>
       </div>
     `;
+	
+    card.querySelector(".entry-header").addEventListener("click", () => {
+		card.classList.toggle("open");
+		
+	});
+	
+	const copyButton = card.querySelector(".copy-button");
+	copyButton.addEventListener("click", (e) => {
+	  e.stopPropagation(); // prevent toggling the card open
+	  copyEntryToClipboard(entry);
+	});
 
-    card.addEventListener("click", () => {
-      card.classList.toggle("open");
-    });
+	const headerCopyButton = card.querySelector(".header-copy-button");
+	headerCopyButton.addEventListener("click", (e) => {
+	  e.stopPropagation(); // prevent toggling the card
+	  copyEntryToClipboard(entry);
+	});
 
     list.appendChild(card);
   });
@@ -311,9 +405,11 @@ function renderDetails(entry) {
 
     html += `
       <div class="label">${key}</div>
-      <div>${entry[key]}</div>
+      <div>${entry[key].toString().replace(/•/g, "<br>")}</div>
     `;
   }
+  
+  
 
   return html;
 }
@@ -322,7 +418,17 @@ const filterButton = document.getElementById("filter-button");
 const filterMenu = document.getElementById("filter-menu");
 
 filterButton.addEventListener("click", () => {
-  filterMenu.classList.toggle("hidden");
+  filterMenu.classList.toggle("show");
+});
+
+document.addEventListener("click", (event) => {
+  const isClickInsideMenu = filterMenu.contains(event.target);
+  const isClickOnButton = filterButton.contains(event.target);
+  
+  // If the click is outside both the menu and the button, hide the menu
+  if (!isClickInsideMenu && !isClickOnButton) {
+    filterMenu.classList.remove("show");
+  }
 });
 
 
@@ -330,30 +436,72 @@ function renderFilters(category) {
   filterMenu.innerHTML = ""; // Clear previous filters
 
   const filterGroups = [];
+  
+  const subjects=["Any","Alchemy","Arcane History","Artificy","Bestiology","Chronomancy","Counterhexology","Crystallomancy","Demonology","Divination","Draconology","Enchantment","Evocation","Herbalism","Hypnomancy","Illusion","Necromancy","Restoration","Runology","Summoning","Telekinesis","Teleportation","Transmutation","Wandcrafting","Warding"];
+  const skills=["Any","Agility","Analyze","Art","Athletics","Comprehend","Concentration","Creature","Deception","Endurance","Hide Object","Improvise","Investigate","Perception","Persuasion","Read Person","Recall Information","Research","Search","Sleight of Hand","Stealth","Tact","Tracking","Willpower","Win Over"];
 
   if (category.toUpperCase() === "SPELLS") {
-    // Subject (24 options with TomSelect)
-    const subjectDiv = document.createElement("div");
+    appendCategories(filterMenu, "SUBJECT", subjects);
+	appendLevels(filterMenu);
+	appendRange(filterMenu, "DC");
+	appendRadios(filterMenu, "RITUAL");
+	appendRadios(filterMenu, "VOLATILE");
+  } else if (category.toUpperCase() === "POTIONS") {
+	appendRange(filterMenu, "COST");
+	appendRange(filterMenu, "INTENSITY");
+	appendRadios(filterMenu, "TWISTED");
+  } else if (category.toUpperCase() === "GLYPHS") {
+	appendRange(filterMenu, "COST");
+	appendRange(filterMenu, "INTENSITY");
+  } else if (category.toUpperCase() === "WANDS") {
+	appendRange(filterMenu, "COST");
+	appendRadios(filterMenu, "TWISTED");
+  } else if (category.toUpperCase() === "ARTIFACTS") {
+	appendCategories(filterMenu, "SUBJECT", subjects);
+	appendLevels(filterMenu);
+	appendRange(filterMenu, "COST");
+	appendRange(filterMenu, "INTENSITY");
+	appendCategories(filterMenu, "SKILL", skills);
+	appendRange(filterMenu, "DC");
+  } else if (category.toUpperCase() === "PLANTS") {
+	appendRange(filterMenu, "VALUE");
+	appendRange(filterMenu, "INTENSITY");
+	appendRadios(filterMenu, "SINGLE-USE");
+  }
+
+  
+  
+}
+
+
+function appendCategories(target,title,categories) {
+
+	// Build the select
+	const subjectDiv = document.createElement("div");
+	const titleUpper = title.toUpperCase();
+	const titleLower = title.toLowerCase();
     subjectDiv.className = "filter-group";
     subjectDiv.innerHTML = `
-      <label>SUBJECT</label>
-      <select id="filter-subject"></select>
+      <label>${titleUpper}</label>
+      <select id="filter-${titleLower}"></select>
     `;
-    filterMenu.appendChild(subjectDiv);
-
-    // Add the 24 options (replace with your actual fields)
-    const subjects = ["Any","Alchemy","Arcane History","Artificy","Bestiology","Chronomancy","Counterhexology","Crystallomancy","Demonology","Divination","Draconology","Enchantment","Evocation","Herbalism","Hypnomancy","Illusion","Necromancy","Restoration","Runology","Summoning","Telekinesis","Teleportation","Transmutation","Wandcrafting","Warding"];
-    const subjectSelect = document.getElementById("filter-subject");
-    subjects.forEach(s => {
+    target.appendChild(subjectDiv);
+	
+	// Add the categories
+    const categorySelect = document.getElementById(`filter-${titleLower}`);
+    categories.forEach(s => {
       const option = document.createElement("option");
       option.value = s.toUpperCase();
       option.textContent = s.toUpperCase();
-      subjectSelect.appendChild(option);
+      categorySelect.appendChild(option);
     });
 
-    new TomSelect("#filter-subject", { create: false });
+	new TomSelect(`#filter-${titleLower}`, { create: false });
 
-    // Levels
+}
+
+function appendLevels(target) {
+
     const levelDiv = document.createElement("div");
     levelDiv.className = "filter-group";
     levelDiv.innerHTML = `
@@ -368,7 +516,7 @@ function renderFilters(category) {
       </select>
     `;
 	
-    filterMenu.appendChild(levelDiv);
+    target.appendChild(levelDiv);
 	new TomSelect("#filter-level", {
 		create: false,          // disable adding new options
 		searchField: [],        // disable text search input
@@ -379,35 +527,45 @@ function renderFilters(category) {
 		}
 	});
 
-    // DC (min/max)
-    const dcDiv = document.createElement("div");
-    dcDiv.className = "filter-group";
-    dcDiv.innerHTML = `
-      <label>DC</label>
-      <input type="number" id="filter-dc-min" placeholder="MIN" style="width: 20%;"> -
-      <input type="number" id="filter-dc-max" placeholder="MAX" style="width: 20%;">
-    `;
-    filterMenu.appendChild(dcDiv);
-
-    // Ritual (checkbox)
-    const ritualDiv = document.createElement("div");
-    ritualDiv.className = "filter-group";
-    ritualDiv.innerHTML = `<label><input type="checkbox" id="filter-ritual"> RITUAL</label>`;
-    filterMenu.appendChild(ritualDiv);
-
-    // Volatile (checkbox)
-    const volatileDiv = document.createElement("div");
-    volatileDiv.className = "filter-group";
-    volatileDiv.innerHTML = `<label><input type="checkbox" id="filter-volatile"> VOLATILE</label>`;
-    filterMenu.appendChild(volatileDiv);
-  }
-
-  // Add additional categories like Potions, Glyphs, etc. here
-  
 }
-  
+
+function appendRange(target, title) {
+
+    const rangeDiv = document.createElement("div");
+	const titleUpper = title.toUpperCase() || "";
+	const titleLower = title.toLowerCase() || "";
+    rangeDiv.className = "filter-group";
+    rangeDiv.innerHTML = `
+      <label>${titleUpper}</label>
+      <input type="number" id="filter-${titleLower}-min" placeholder="MIN" style="width: 20%;"> -
+      <input type="number" id="filter-${titleLower}-max" placeholder="MAX" style="width: 20%;">
+    `;
+    target.appendChild(rangeDiv);
+
+}
+
+function appendRadios(target, title, options = ["YES", "NO"]) {
+
+	const radioDiv = document.createElement("div");
+	const titleUpper = title.toUpperCase();
+	const titleLower = title.toLowerCase();
+	radioDiv.className = "filter-group";
+	let totalHTML = `
+		<label>${titleUpper}</label><br>
+		<label><input type="radio" name="filter-${titleLower}" value="" checked> ANY</label>
+	`;
+	for (let currentOption in options) {
+		currentOption = options[currentOption].toUpperCase() || "";
+		totalHTML += `<label><input type="radio" name="filter-${titleLower}" value="${currentOption}"> ${currentOption}</label>`;
+	}
+	radioDiv.innerHTML = totalHTML;
+	target.appendChild(radioDiv);
+
+}
+
+
 function setupFilterListeners() {
-const inputs = filterMenu.querySelectorAll("select, input[type=checkbox], input[type=number]");
+const inputs = filterMenu.querySelectorAll("select, input[type=radio], input[type=checkbox], input[type=number]");
 
 inputs.forEach(input => {
 input.addEventListener("change", applyFilters);
@@ -415,74 +573,156 @@ input.addEventListener("change", applyFilters);
 
 }
 
+function entryMatches(entry, filters, search) {
+  let show = true;
+
+  // --- Apply all existing filters dynamically ---
+  for (let key in filters) {
+    const value = filters[key];
+    if (!value || value === "ANY") continue;
+
+    const field = key.replace(/^filter-/, "").toUpperCase();
+
+    // Number ranges
+    if (key.endsWith("-MIN")) {
+      const realField = field.replace("-MIN", "");
+      const entryVal = parseFloat(entry[realField]);
+      if (isNaN(entryVal) || entryVal < value) show = false;
+    } else if (key.endsWith("-MAX")) {
+      const realField = field.replace("-MAX", "");
+      const entryVal = parseFloat(entry[realField]);
+      if (isNaN(entryVal) || entryVal > value) show = false;
+    }
+    // Radio / select filters
+    else {
+      if ((entry[field] || "").toString().toUpperCase() !== value) show = false;
+    }
+  }
+
+  // --- Apply search ---
+  if (search) {
+    const nameMatch = (entry.NAME || "").toUpperCase().includes(search);
+    const idExactMatch = (entry.ID || "").toUpperCase() === search;
+    const idAfterUnderscoreMatch = ((entry.ID || "").split("_")[1] || "").toUpperCase() === search;
+
+    if (!(nameMatch || idExactMatch || idAfterUnderscoreMatch)) {
+      show = false;
+    }
+  }
+
+  return show;
+}
+
 function applyFilters() {
-  const subject = document.getElementById("filter-subject")?.value || "";
-  const level = document.getElementById("filter-level")?.value || "";
-  const dcMin = parseInt(document.getElementById("filter-dc-min")?.value) || null;
-  const dcMax = parseInt(document.getElementById("filter-dc-max")?.value) || null;
-  const ritual = document.getElementById("filter-ritual")?.checked || false;
-  const volatileTag = document.getElementById("filter-volatile")?.checked || false;
+	// Collect all filters dynamically
+	const filters = {};
+	const inputs = filterMenu.querySelectorAll("select, input[type=number], input[type=radio], input[type=checkbox]");
+
+	const search = searchBar.value.trim().toUpperCase();
+	
+	inputs.forEach(input => {
+	  const idOrName = input.type === "radio" ? input.name : input.id;
+
+	  if (input.type === "radio") {
+		const checked = filterMenu.querySelector(`input[name="${input.name}"]:checked`);
+		filters[idOrName] = checked?.value || "";
+	  } else if (input.type === "number") {
+		filters[idOrName] = input.value ? parseFloat(input.value) : null;
+	  } else if (input.type === "checkbox") {
+		filters[idOrName] = input.checked;
+	  } else { // select
+		filters[idOrName] = input.value || "";
+	  }
+	});
 
   const categoryKey = dropdown.value;
 
   list.innerHTML = ""; // clear current entries
 
   currentData.forEach(entry => {
-    // Start by assuming the entry passes
-    let show = true;
-	let isHex = false;
-	
-    // Subject filter
-    if (subject && entry.SUBJECT !== subject && subject !== "ANY") show = false;
-	
-	
-	if (entry.LEVEL.split(' ')[0] === "HEX") isHex = true;
-    // Level filter
-    if (level && entry.LEVEL !== level && level !== "ANY") {
-		show = false;
-	};
-	if (level && level === "HEX" && isHex) show = true;
+  if (entryMatches(entry, filters, search)) {
+    const card = document.createElement("div");
+    card.className = "entry";
+    const category = entry.ID.split('_')[0].toLowerCase();
+    const headerFormat = headerFields[category] || (() => "");
 
-    // DC filter
-    const dc = parseInt(entry.DC);
-    if (dcMin !== null && (dc < dcMin || isNaN(dc))) show = false;
-    if (dcMax !== null && (dc > dcMax || isNaN(dc))) show = false;
-	
-    // Ritual filter
-    if (ritual && entry.RITUAL !== "YES") show = false;
-
-    // Volatile filter
-    if (volatileTag && entry.VOLATILE !== "YES") show = false;
-
-    if (show) {
-      const card = document.createElement("div");
-      card.className = "entry";
-      const category = entry.ID.split('_')[0].toLowerCase();
-      const headerFormat = headerFields[category] || (() => "");
-
-      card.innerHTML = `
-        <div class="entry-header">
-          <div>
-            ${entry.NAME || "Unnamed"}
-            <div class="entry-meta">
-              ${headerFormat(entry)}
-            </div>
+    card.innerHTML = `
+      <div class="entry-header">
+        <div>
+          ${entry.NAME || "Unnamed"}
+          <div class="entry-meta">
+            ${headerFormat(entry)}
           </div>
-          <div>▼</div>
         </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+		  <button class="header-copy-button" title="Copy"><span class="material-icons">content_copy</span></button>
+		  <div class="arrow">▼</div>
+		</div>
+      </div>
+      <div class="entry-content">
+        ${renderDetails(entry)}
+		<button class="copy-button">Copy</button>
+      </div>
+    `;
+	
+    card.querySelector(".entry-header").addEventListener("click", () => {
+		card.classList.toggle("open");
 
-        <div class="entry-content">
-          ${renderDetails(entry)}
-        </div>
-      `;
-
-      card.addEventListener("click", () => card.classList.toggle("open"));
-
-      list.appendChild(card);
-    }
-  });
+	});
+	
+	const copyButton = card.querySelector(".copy-button");
+	copyButton.addEventListener("click", (e) => {
+	  e.stopPropagation(); // prevent toggling the card open
+	  copyEntryToClipboard(entry);
+	});
+	
+	const headerCopyButton = card.querySelector(".header-copy-button");
+	headerCopyButton.addEventListener("click", (e) => {
+	  e.stopPropagation(); // prevent toggling the card
+	  copyEntryToClipboard(entry);
+	});
+	
+    list.appendChild(card);
+  }
+});
 }
 
+
+const searchBar = document.getElementById("search-bar");
+searchBar.addEventListener("input", applyFilters);
+
+function copyEntryToClipboard(entry) {
+  const lines = [];
+
+  for (let key in entry) {
+    if (key.toUpperCase() === "ID") continue; // skip ID
+    let value = entry[key];
+    if (!value) continue;
+
+    value = value.toString().trim();
+
+    if (value.toUpperCase() === "YES") {
+      // replace YES with the label (field name)
+      lines.push(key);
+    } else if (value.toUpperCase() === "NO") {
+      // skip this line entirely
+      continue;
+    } else {
+      // replace any internal • with line breaks
+      lines.push(value.replace(/•/g, "\n"));
+    }
+  }
+
+  const textToCopy = lines.join("\n");
+
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      console.log("Copied to clipboard:", textToCopy);
+    })
+    .catch(err => {
+      console.error("Failed to copy:", err);
+    });
+}
 
 loadSheet();
 renderFilters(dropdown.value);
