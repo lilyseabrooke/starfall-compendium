@@ -562,9 +562,11 @@ function renderFilters(category) {
   
   const subjects=["Any","Alchemy","Arcane History","Artificy","Bestiology","Chronomancy","Counterhexology","Crystallomancy","Demonology","Divination","Draconology","Enchantment","Evocation","Herbalism","Hypnomancy","Illusion","Necromancy","Restoration","Runology","Summoning","Telekinesis","Teleportation","Transmutation","Wandcrafting","Warding"];
   const skills=["Any","Agility","Analyze","Art","Athletics","Comprehend","Concentration","Creature","Deception","Endurance","Hide Object","Improvise","Investigation","Perception","Persuasion","Read Person","Recall Information","Research","Search","Sleight of Hand","Stealth","Tact","Tracking","Willpower","Win Over"];
+  const stats=["Any","Focus","Creativity","Logic","Insight","Body","Charm"];
 
   if (category.toUpperCase() === "SPELLS") {
     appendCategories(filterMenu, "SUBJECT", subjects);
+	appendCategories(filterMenu, "SUBJECT", stats);
 	appendLevels(filterMenu);
 	appendRange(filterMenu, "DC");
 	appendRadios(filterMenu, "RITUAL");
