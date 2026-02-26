@@ -567,7 +567,7 @@ function renderFilters(category) {
   if (category.toUpperCase() === "SPELLS") {
     appendCategories(filterMenu, "SUBJECT", subjects);
 	appendCategories(filterMenu, "STAT", stats);
-	appendLevels(filterMenu);
+	appendLevels(filterMenu, "HEX");
 	appendRange(filterMenu, "DC");
 	appendRadios(filterMenu, "RITUAL");
 	appendRadios(filterMenu, "VOLATILE");
@@ -583,7 +583,7 @@ function renderFilters(category) {
 	appendRadios(filterMenu, "TWISTED");
   } else if (category.toUpperCase() === "ARTIFACTS") {
 	appendCategories(filterMenu, "SUBJECT", subjects);
-	appendLevels(filterMenu);
+	appendLevels(filterMenu, "TWISTED");
 	appendRange(filterMenu, "COST");
 	appendRange(filterMenu, "INTENSITY");
 	appendCategories(filterMenu, "SKILL", skills);
@@ -627,10 +627,11 @@ function appendCategories(target,title,categories) {
 
 }
 
-function appendLevels(target) {
+function appendLevels(target, hexName) {
 
     const levelDiv = document.createElement("div");
     levelDiv.className = "filter-group";
+	console.log(hexName);
     levelDiv.innerHTML = `
       <label>LEVEL</label>
       <select id="filter-level">
@@ -639,7 +640,7 @@ function appendLevels(target) {
         <option>STANDARD</option>
         <option>ADVANCED</option>
         <option>LEGENDARY</option>
-        <option>HEX</option>
+        <option>${hexName}</option>
       </select>
     `;
 	
@@ -766,7 +767,9 @@ function entryMatches(entry, filters, search) {
 	// Check if every element is NOT equal to value
 	
 	if (typeof entry[field] === "string" && splitEntry.every(e => e.toString().toUpperCase().trim() !== value.toUpperCase())) {
-	  show = false;
+	  if (value.toUpperCase() !== "HEX" || entry[field].split(' ')[0].toUpperCase() !== "HEX") {
+		show = false;
+	  }
 	}
   }
 
