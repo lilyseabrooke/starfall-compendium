@@ -188,7 +188,7 @@ function renderEntries(data){
     el.innerHTML = `
       <img class="state__crest" src="assets/crest-lines.png" alt="" />
       <div class="state__title">No matches</div>
-      <div class="state__text">No entries match your search and filters.</div>
+      <div class="state__text">The fetch hound has searched and found nothing.</div>
       <button class="state__action" id="clear-empty">Clear filters</button>`;
     list.appendChild(el);
     document.getElementById("clear-empty").addEventListener("click", () => { searchBar.value=""; resetFilters(); });
