@@ -1,54 +1,75 @@
-<!-- @dsCard group="Academy Portal" viewport="1280x720" name="Academy Portal" subtitle="Student portal — enrollment gate, the Atrium dashboard & a multimedia course" -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Starfall Academy · Portal</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Starfall Academy · Compendium</title>
+<link rel="icon" type="image/png" href="assets/crest-simple.png" />
+
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="portal.css" />
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-<script src="_ds_bundle.js"></script>
-<style> html, body, #root { height: 100%; } body { margin: 0; } </style>
+
+<!-- Compendium styling -->
+<link rel="stylesheet" href="compendium.css" />
+
+<!-- PapaParse (live Google Sheets) + TomSelect (filter dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<script src="https://unpkg.com/lucide@0.471.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
-<div id="root"></div>
 
-<!-- Expose the design-system namespace under a short alias for the screens -->
-<script>window.SA = window.StarfallAcademyDesignSystem_61fef2;</script>
-<script src="data.js"></script>
-<script type="text/babel" src="AppShell.jsx"></script>
-<script type="text/babel" src="GateScreen.jsx"></script>
-<script type="text/babel" src="AtriumScreen.jsx"></script>
-<script type="text/babel" src="CourseScreen.jsx"></script>
+<!-- Centered line-crest watermark behind everything (the Map's stage treatment) -->
+<div class="bg-crest" aria-hidden="true"></div>
 
-<script type="text/babel">
-  function Portal() {
-    const [screen, setScreen] = React.useState("gate");
-    const [course, setCourse] = React.useState(null);
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <img class="topbar__crest" src="assets/crest-simple.png" alt="Starfall Academy crest" />
+  <div class="topbar__titles">
+    <span class="topbar__kicker">Starfall Academy</span>
+    <span class="topbar__title">Reference Compendium</span>
+  </div>
+  <div class="search">
+    <i data-lucide="search"></i>
+    <input type="text" id="search-bar" placeholder="Search the archive…" autocomplete="off" />
+  </div>
+  <span class="topbar__spacer"></span>
+  <div class="topbar__filter">
+    <button type="button" class="filter-btn" id="filter-button" aria-label="Filters">
+      <i data-lucide="sliders-horizontal"></i>
+      <span>Filters</span>
+      <span class="filter-dot"></span>
+    </button>
+    <div id="filter-menu" class="filter-menu" role="dialog" aria-label="Filter options"></div>
+  </div>
+</header>
 
-    React.useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+<!-- ===================== TOOLBAR ===================== -->
+<div class="toolbar" id="toolbar">
+  <div class="toolbar__inner">
+    <nav class="cats" id="cats" aria-label="Compendium categories"></nav>
+    <div class="sort">
+      <button type="button" class="sort-btn" id="sort-button" aria-label="Sort entries">
+        <i data-lucide="arrow-up-down"></i>
+        <span class="sort-btn__label">Sort</span>
+        <span class="sort-btn__sep">·</span>
+        <span class="sort-current" id="sort-current">Name</span>
+      </button>
+      <div class="sort-menu" id="sort-menu" role="dialog" aria-label="Sort options"></div>
+    </div>
+  </div>
+</div>
 
-    if (screen === "gate") return <window.GateScreen onEnter={() => setScreen("atrium")} />;
-    if (screen === "course") return (
-      <window.CourseScreen
-        course={course}
-        onNavigate={(id) => setScreen(id === "atrium" ? "atrium" : "atrium")}
-        onBack={() => setScreen("atrium")}
-      />
-    );
-    return (
-      <window.AtriumScreen
-        onNavigate={(id) => setScreen(id === "atrium" ? "atrium" : "atrium")}
-        onOpenCourse={(c) => { setCourse(c); setScreen("course"); }}
-      />
-    );
-  }
-  ReactDOM.createRoot(document.getElementById("root")).render(<Portal />);
-  setTimeout(() => window.lucide && window.lucide.createIcons(), 120);
-</script>
+<!-- ===================== LIST ===================== -->
+<main class="shell">
+  <div id="list" class="list"></div>
+</main>
+
+<!-- copy confirmation toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast__icon" id="toast-icon"></span><span id="toast-text">Copied to clipboard</span>
+</div>
+
+<script src="compendium.js"></script>
 </body>
 </html>
