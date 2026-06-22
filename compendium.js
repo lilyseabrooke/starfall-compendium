@@ -107,21 +107,13 @@ function buildCats(){
     catsEl.appendChild(b);
   });
   refreshIcons();
-  updateCatFade();
 }
 
-function updateCatFade(){
-  const sl = catsEl.scrollLeft;
-  const max = catsEl.scrollWidth - catsEl.clientWidth;
-  catsEl.classList.toggle("fade-start", sl > 2);
-  catsEl.classList.toggle("fade-end", sl < max - 2);
-}
 function setTopbarH(){
   const h = document.querySelector(".topbar").offsetHeight;
   document.documentElement.style.setProperty("--topbar-h", h + "px");
 }
-catsEl.addEventListener("scroll", updateCatFade, { passive:true });
-window.addEventListener("resize", () => { updateCatFade(); setTopbarH(); });
+window.addEventListener("resize", setTopbarH);
 window.addEventListener("load", setTopbarH);
 
 function selectCategory(name){
