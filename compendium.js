@@ -24,12 +24,13 @@ const sheets = {
   "Wands":     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=1233793945&single=true&output=csv",
   "Artifacts": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=697341861&single=true&output=csv",
   "Plants":    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=699108983&single=true&output=csv",
+  "Items":     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=1377072119&single=true&output=csv",
   "Classes":   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXtnorBMPVkIS5vVvc1hiPA_9MNwo3v5gcC__rVMLa28HHCjuKjCm5f_dwQgXfWVF9jF9rfl6oLsfd/pub?gid=1631797228&single=true&output=csv"
 };
 
 const CATEGORY_ICONS = {
   "Spells": "sparkles", "Potions": "flask-conical", "Glyphs": "pen-tool",
-  "Wands": "wand-2", "Artifacts": "gem", "Plants": "sprout", "Classes": "graduation-cap"
+  "Wands": "wand-2", "Artifacts": "gem", "Plants": "sprout", "Items": "backpack", "Classes": "graduation-cap"
 };
 
 /* header meta line per category (unchanged formats, rendered as badges below) */
@@ -40,6 +41,7 @@ const headerFields = {
   wand:     e => ({ txt: e.COST ? "Cost · " + e.COST : "" }),
   artifact: e => ({ level: e.LEVEL, txt: e.SUBJECT }),
   plant:    e => ({ txt: trio("Value", e.VALUE, "Intensity", e.INTENSITY) }),
+  item:     e => ({ txt: e.COST ? "Cost · " + e.COST : "" }),
   class:    e => ({ txt: "" })
 };
 function trio(a, av, b, bv){
@@ -81,6 +83,7 @@ const SORT_FIELDS = {
   WANDS:     [["NAME","Name","text"],["COST","Cost","num"]],
   ARTIFACTS: [["NAME","Name","text"],["SUBJECT","Subject","text"],["LEVEL","Level","level"],["COST","Cost","num"],["INTENSITY","Intensity","num"],["DC","DC","num"]],
   PLANTS:    [["NAME","Name","text"],["VALUE","Value","num"],["INTENSITY","Intensity","num"]],
+  ITEMS:     [["NAME","Name","text"],["COST","Cost","num"]],
   CLASSES:   [["NAME","Name","text"]]
 };
 const LEVEL_ORDER = { BASIC:0, STANDARD:1, ADVANCED:2, LEGENDARY:3, HEX:4, TWISTED:4 };
@@ -179,6 +182,9 @@ function showState(kind){
    Rendering entries
    =========================================================================== */
 const SKIP_KEYS = new Set(["ID", "NAME"]);
+const CATEGORY_SKIP_KEYS = {
+  item: new Set(["TAGS", "CHECK"])
+};
 
 function renderEntries(data){
   list.innerHTML = "";
@@ -221,7 +227,7 @@ function buildCard(entry){
     </div>
     <div class="entry-content">
       <div class="entry-rule"></div>
-      ${isClass ? renderClassCard(entry) : renderDetails(entry)}
+      ${isClass ? renderClassCard(entry) : renderDetails(entry, category)}
       ${isClass ? "" : `<button class="copy-button">${SVG_COPY}Copy entry</button>`}
     </div>`;
 
@@ -246,10 +252,12 @@ function buildMeta(meta){
 }
 
 /* Heuristic layout: short values → facts grid; long / multi-line → prose blocks */
-function renderDetails(entry){
+function renderDetails(entry, category){
   const facts = [], blocks = [];
+  const catSkip = (category && CATEGORY_SKIP_KEYS[category]) || null;
   for (const key in entry){
     if (SKIP_KEYS.has(key)) continue;
+    if (catSkip && catSkip.has(key.toUpperCase())) continue;
     let val = entry[key];
     if (val === undefined || val === null) continue;
     val = val.toString().trim();
@@ -317,6 +325,8 @@ function renderFilters(category){
     appendRange("COST"); appendRange("INTENSITY"); appendCategorySelect("SKILL", SKILLS); appendRange("DC");
   } else if (c === "PLANTS"){
     appendRange("VALUE"); appendRange("INTENSITY"); appendRadios("SINGLE-USE");
+  } else if (c === "ITEMS"){
+    appendRange("COST"); appendRadios("SINGLE-USE");
   }
   appendResetButton();
 }
