@@ -3,73 +3,63 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Starfall Academy · Compendium</title>
+<title>Starfall Academy · Compendium Has Moved</title>
 <link rel="icon" type="image/png" href="assets/crest-simple.png" />
+<meta http-equiv="refresh" content="0; url=https://starfall.to/compendium" />
+<link rel="canonical" href="https://starfall.to/compendium" />
 
 <link rel="stylesheet" href="styles.css" />
-
-<!-- Compendium styling -->
 <link rel="stylesheet" href="compendium.css" />
 
-<!-- PapaParse (live Google Sheets) + TomSelect (filter dropdowns) -->
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
-<script src="https://unpkg.com/lucide@0.471.0/dist/umd/lucide.min.js"></script>
+<style>
+  .moved {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  .moved__card {
+    max-width: 32rem;
+  }
+  .moved__crest {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.5rem;
+    display: block;
+  }
+  .moved__link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    border: 1px solid currentColor;
+  }
+</style>
+
+<script>
+  window.location.replace("https://starfall.to/compendium");
+</script>
 </head>
 <body>
 
-<!-- Centered line-crest watermark behind everything (the Map's stage treatment) -->
 <div class="bg-crest" aria-hidden="true"></div>
 
-<!-- ===================== TOP BAR ===================== -->
-<header class="topbar">
-  <img class="topbar__crest" src="assets/crest-simple.png" alt="Starfall Academy crest" />
-  <div class="topbar__titles">
-    <span class="topbar__kicker">Starfall Academy</span>
-    <span class="topbar__title">Reference Compendium</span>
+<main class="moved">
+  <div class="moved__card">
+    <img class="moved__crest" src="assets/crest-simple.png" alt="Starfall Academy crest" />
+    <h1>This Compendium has moved</h1>
+    <p>
+      The Starfall Academy Reference Compendium now lives inside the integrated
+      Starfall system. This page is deprecated and will no longer be updated.
+    </p>
+    <p>You're being redirected automatically. If nothing happens, use the link below.</p>
+    <a class="moved__link" href="https://starfall.to/compendium">Go to starfall.to/compendium</a>
   </div>
-  <div class="search">
-    <i data-lucide="search"></i>
-    <input type="text" id="search-bar" placeholder="Search the archive…" autocomplete="off" />
-  </div>
-  <span class="topbar__spacer"></span>
-  <div class="topbar__filter">
-    <button type="button" class="filter-btn" id="filter-button" aria-label="Filters">
-      <i data-lucide="sliders-horizontal"></i>
-      <span>Filters</span>
-      <span class="filter-dot"></span>
-    </button>
-    <div id="filter-menu" class="filter-menu" role="dialog" aria-label="Filter options"></div>
-  </div>
-</header>
-
-<!-- ===================== TOOLBAR ===================== -->
-<div class="toolbar" id="toolbar">
-  <div class="toolbar__inner">
-    <nav class="cats" id="cats" aria-label="Compendium categories"></nav>
-    <div class="sort">
-      <button type="button" class="sort-btn" id="sort-button" aria-label="Sort entries">
-        <i data-lucide="arrow-up-down"></i>
-        <span class="sort-btn__label">Sort</span>
-        <span class="sort-btn__sep">·</span>
-        <span class="sort-current" id="sort-current">Name</span>
-      </button>
-      <div class="sort-menu" id="sort-menu" role="dialog" aria-label="Sort options"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== LIST ===================== -->
-<main class="shell">
-  <div id="list" class="list"></div>
 </main>
 
-<!-- copy confirmation toast -->
-<div class="toast" id="toast" role="status" aria-live="polite">
-  <span class="toast__icon" id="toast-icon"></span><span id="toast-text">Copied to clipboard</span>
-</div>
-
-<script src="compendium.js"></script>
 </body>
 </html>
